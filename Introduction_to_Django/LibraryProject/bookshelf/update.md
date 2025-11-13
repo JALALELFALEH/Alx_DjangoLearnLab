@@ -1,4 +1,4 @@
-In [32]: from bookshelf.models import Book
+
 
 In [33]: books = Book.objects.all()
 

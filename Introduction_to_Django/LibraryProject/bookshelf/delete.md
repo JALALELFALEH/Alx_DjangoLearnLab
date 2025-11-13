@@ -1,3 +1,4 @@
+In [43]: from bookshelf.models import Book
 In [44]: Book.objects.all()
 Out[44]: <QuerySet [<Book: >, <Book: Nineteen Eighty-Four>]>
 
