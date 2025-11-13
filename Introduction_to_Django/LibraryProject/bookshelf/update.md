@@ -1,3 +1,5 @@
+In [32]: from bookshelf.models import Book
+
 In [33]: books = Book.objects.all()
 
 In [34]: book = Book.objects.get(title="1984")
