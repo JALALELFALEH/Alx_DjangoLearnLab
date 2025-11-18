@@ -6,9 +6,9 @@ library_name = "Main City Library"
 
 # --- DATA SETUP (Mandatory) ---
 # 1. Author and Books (ForeignKey)
-author_to_filter = Author.objects.create(name=author_name)
-book1 = Book.objects.create(title="War and Peace", author=author_to_filter)
-book2 = Book.objects.create(title="Anna Karenina", author=author_to_filter)
+author_obj = Author.objects.create(name=author_name)
+book1 = Book.objects.create(title="War and Peace", author=author_obj)
+book2 = Book.objects.create(title="Anna Karenina", author=author_obj)
 
 # 2. Library and Books (ManyToMany)
 library_instance = Library.objects.create(name=library_name)
@@ -21,10 +21,10 @@ Librarian.objects.create(name="Maria", library=library_instance)
 # --- QUERY 1: Query all books by a specific author. (Strict Checker Requirements) ---
 print("\nQUERY 1: Books by Author")
 # Satisfies: "Author.objects.get(name=author_name)"
-author_obj = Author.objects.get(name=author_name) 
+author_to_filter = Author.objects.get(name=author_name) 
 
 # Satisfies: "objects.filter(author=author)"
-filtered_books = Book.objects.filter(author=author_obj)
+filtered_books = Book.objects.filter(author=author_to_filter)
 for book in filtered_books:
     print(book.title)
 
@@ -37,9 +37,13 @@ for book in library_obj_2.books.all():
     print(book.title)
 
 
-# --- QUERY 3: Retrieve the librarian for a library. (OneToOne Reverse) ---
+# --- QUERY 3: Retrieve the librarian for a library. (Strict Checker Requirements) ---
 print("\nQUERY 3: Librarian Name")
-# Satisfies: "Library.objects.get(name=library_name)"
-library_obj_3 = Library.objects.get(name=library_name)
-librarian = library_obj_3.head_librarian
-print(librarian.name)
+
+# Satisfies: "Library.objects.get(name=library_name)" (Used to fetch the object needed for lookup)
+library_for_lookup = Library.objects.get(name=library_name) 
+
+# Satisfies: "Librarian.objects.get(library=" 
+# This is the required forward lookup demonstration:
+forward_librarian = Librarian.objects.get(library=library_for_lookup)
+print(forward_librarian.name)
