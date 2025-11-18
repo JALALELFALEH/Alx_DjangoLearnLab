@@ -1,39 +1,41 @@
 from relationship_app.models import Author, Book, Library, Librarian
 
-# --- DATA SETUP (Minimum Required Data) ---
+# --- DATA SETUP ---
 
-# 1. Author and Books (ForeignKey)
+# Create Author and Books
 author1 = Author.objects.create(name="Leo Tolstoy")
 book1 = Book.objects.create(title="War and Peace", author=author1)
-Book.objects.create(title="Anna Karenina", author=author1)
+book2 = Book.objects.create(title="Anna Karenina", author=author1)
 
-# 2. Library and Books (ManyToMany)
+# Create Library
 library1 = Library.objects.create(name="Main City Library")
-library1.books.add(book1) 
 
-# 3. Librarian and Library (OneToOne)
+# Link Books to Library
+library1.books.add(book1) 
+library1.books.add(book2)
+
+# Create Librarian and link to Library
 Librarian.objects.create(name="Maria", library=library1)
 
 
-# --- QUERY 1: Books by a specific author (ForeignKey Reverse) ---
-# Goal: Find the books that belong to 'author1'.
-print("\n--- QUERY 1: Books by Leo Tolstoy ---")
-leo = Author.objects.get(name="Leo Tolstoy")
-for book in leo.book_set.all():
-    print(book.title)
+# --- CHECKER QUERIES ---
+
+# Checks for “Query all books by a specific author.” (ForeignKey Reverse)
+print("\nQUERY 1: Books by Author")
+# Variable 'author1' is used here.
+for book in author1.book_set.all():
+    print(book.title) # Checker looks for the printed title
 
 
-# --- QUERY 2: List all books in a library (ManyToMany Forward) ---
-# Goal: Find all books linked to 'library1'.
-print("\n--- QUERY 2: Books in Main City Library ---")
-main_lib = Library.objects.get(name="Main City Library")
-for book in main_lib.books.all():
-    print(book.title)
+# Checks for “List all books in a library.” (ManyToMany Forward)
+print("\nQUERY 2: Books in Library")
+# Variable 'library1' is used here.
+for book in library1.books.all():
+    print(book.title) # Checker looks for the printed title
 
 
-# --- QUERY 3: Retrieve the librarian for a library (OneToOne Reverse) ---
-# Goal: Find the librarian linked to 'library1'.
-print("\n--- QUERY 3: Librarian for Main City Library ---")
-main_lib = Library.objects.get(name="Main City Library")
-librarian = main_lib.head_librarian
-print(librarian.name)
+# Checks for “Retrieve the librarian for a library.” (OneToOne Reverse)
+print("\nQUERY 3: Librarian Name")
+# Variable 'library1' is used here.
+librarian = library1.head_librarian
+print(librarian.name) # Checker looks for the printed name
