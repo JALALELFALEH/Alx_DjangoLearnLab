@@ -6,6 +6,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import permission_required
 
 # Create your views here.
 
@@ -51,3 +53,26 @@ def librarian_view(request):
 @user_passes_test(is_member, login_url='/login/')
 def member_view(request):
     return render(request, 'relationship_app/member_view.html', {})
+
+@permission_required('relationship_app.can_add_book', login_url='/login/')
+def book_add(request):
+    """View to handle adding a book, restricted by 'can_add_book' permission."""
+    # In a real app, this would handle a form submission (POST)
+    message = "You have permission to ADD a book."
+    return render(request, 'relationship_app/permission_test.html', {'message': message})
+
+@permission_required('relationship_app.can_change_book', login_url='/login/')
+def book_edit(request, pk):
+    """View to handle editing a book, restricted by 'can_change_book' permission."""
+    book = get_object_or_404(Book, pk=pk)
+    # In a real app, this would handle a form submission (POST)
+    message = f"You have permission to EDIT book ID {pk}: {book.title}"
+    return render(request, 'relationship_app/permission_test.html', {'message': message})
+
+@permission_required('relationship_app.can_delete_book', login_url='/login/')
+def book_delete(request, pk):
+    """View to handle deleting a book, restricted by 'can_delete_book' permission."""
+    book = get_object_or_404(Book, pk=pk)
+    # In a real app, this would delete the object after confirmation
+    message = f"You have permission to DELETE book ID {pk}: {book.title}"
+    return render(request, 'relationship_app/permission_test.html', {'message': message})
