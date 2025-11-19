@@ -12,7 +12,7 @@ urlpatterns = [
     path('admin_area/', views.admin_view, name='admin_view'),
     path('librarian_desk/', views.librarian_view, name='librarian_view'),
     path('member_area/', views.member_view, name='member_view'),
-    path('books/add/', views.book_add, name='book_add'),
-    path('books/edit/<int:pk>/', views.book_edit, name='book_edit'),
-    path('books/delete/<int:pk>/', views.book_delete, name='book_delete'),
+    path('books/add/', views.add_book, name='book_add'),
+    path('books/edit/<int:pk>/', views.edit_book, name='book_edit'),
+    path('books/delete/<int:pk>/', views.delete_book, name='book_delete'),
 ]
