@@ -166,3 +166,7 @@ CSRF_COOKIE_SECURE = True                   # Step 2
 X_FRAME_OPTIONS = 'DENY'                    # prevent clickjacking
 SECURE_CONTENT_TYPE_NOSNIFF = True          # prevent MIME sniffing
 SECURE_BROWSER_XSS_FILTER = True            # enable browser XSS filtering
+
+
+# Detect HTTPS when behind a proxy (e.g., Nginx)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
