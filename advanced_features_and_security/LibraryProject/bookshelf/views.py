@@ -10,21 +10,25 @@ def book_list(request):
 @permission_required('app_name.can_create', raise_exception=True)
 def create_book(request):
     if request.method == 'POST':
-        title = request.POST.get('title')
-        author = request.POST.get('author')
-        year = request.POST.get('year')
-        Book.objects.create(title=title, author=author, publication_year=year)
+        title = request.POST.get('title').strip()
+        author = request.POST.get('author').strip()
+        year = request.POST.get('year').strip()
+        Book.objects.create(
+            title=title, 
+            author=author, 
+            publication_year=year
+            )
         return redirect('book_list')
     return render(request, 'bookshelf/create_book.html')
     
 @permission_required('bookshelf.can_edit', raise_exception=True)
 def edit_book(request, book_id):
-    book = get_object_or_404(book, pk=book_id)
+    book = get_object_or_404(Book, pk=book_id)
 
     if request.method == 'POST':
-        book.title = request.POST.get('title')
-        book.author = request.POST.get('author')
-        book.publication_year = request.POST.get('year')
+        book.title = request.POST.get('title').strip()
+        book.author = request.POST.get('author').strip()
+        book.publication_year = request.POST.get('year').strip()
         book.save()
         return redirect('book_list')
     return render(request, 'bookshelf/edit_book.html', {'book': book})
