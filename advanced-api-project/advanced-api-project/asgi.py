@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'advanced_api_projec.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'advanced-api-projec.settings')
 
 application = get_asgi_application()
