@@ -2,7 +2,7 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
 from .views import (
-    CustomLoginView, 
+    CustomLoginView,
     PostListView, 
     PostDetailView, 
     PostCreateView,
@@ -10,7 +10,8 @@ from .views import (
     PostDeleteView,
     CommentCreateView,
     CommentUpdateView,
-    CommentDeleteView
+    CommentDeleteView,
+    TagPostsListView
 )
 
 urlpatterns = [
@@ -23,15 +24,20 @@ urlpatterns = [
     path('post/<int:pk>/update/', PostUpdateView.as_view(), name='post_update'),
     path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
     
-    # Comment CRUD URLs - Fixed according to task requirements
+    # Comment CRUD URLs
     path('post/<int:pk>/comments/new/', CommentCreateView.as_view(), name='comment_create'),
     path('comment/<int:pk>/update/', CommentUpdateView.as_view(), name='comment_update'),
     path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment_delete'),
     path('post/<int:pk>/comment/add/', views.add_comment, name='add_comment'),
     
+    # Search and Tag URLs
+    path('search/', views.search_posts, name='search'),
+    path('tags/', views.tag_cloud, name='tag_cloud'),
+    path('tags/<slug:tag_slug>/', TagPostsListView.as_view(), name='posts_by_tag'),
+    
     # Authentication URLs
     path('register/', views.register, name='register'),
-    path('login/', CustomLoginView.as_view(template_name='blog/login.html'), name='login'),
+    path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='blog/logout.html'), name='logout'),
     
     # Profile URLs

@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from taggit.forms import TagWidget
 from .models import Post, Comment
 
 class UserRegisterForm(UserCreationForm):
@@ -39,9 +40,18 @@ class UserUpdateForm(UserChangeForm):
         return email
 
 class PostForm(forms.ModelForm):
+    tags = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter tags separated by commas (e.g., django, python, web)'
+        }),
+        help_text='Separate tags with commas'
+    )
+    
     class Meta:
         model = Post
-        fields = ['title', 'content', 'is_published']
+        fields = ['title', 'content', 'is_published', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -56,6 +66,31 @@ class PostForm(forms.ModelForm):
                 'class': 'form-check-input'
             }),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            tags = self.instance.tags.names()
+            self.initial['tags'] = ', '.join(tags)
+    
+    def clean_tags(self):
+        tags = self.cleaned_data.get('tags', '')
+        # Clean up tags: remove extra spaces, make lowercase
+        tag_list = [tag.strip().lower() for tag in tags.split(',') if tag.strip()]
+        return ', '.join(tag_list)
+    
+    def save(self, commit=True):
+        post = super().save(commit=False)
+        if commit:
+            post.save()
+            # Clear existing tags and add new ones
+            post.tags.clear()
+            tags = self.cleaned_data.get('tags', '')
+            if tags:
+                tag_list = [tag.strip().lower() for tag in tags.split(',') if tag.strip()]
+                post.tags.add(*tag_list)
+            self.save_m2m()
+        return post
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -72,16 +107,6 @@ class CommentForm(forms.ModelForm):
         labels = {
             'content': ''
         }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['content'].widget.attrs.update({'maxlength': '1000'})
-    
-    def clean_content(self):
-        content = self.cleaned_data.get('content')
-        if len(content.strip()) < 5:
-            raise ValidationError("Comment must be at least 5 characters long.")
-        return content
 
 class CommentUpdateForm(forms.ModelForm):
     class Meta:
@@ -94,3 +119,29 @@ class CommentUpdateForm(forms.ModelForm):
                 'maxlength': 1000
             }),
         }
+
+class SearchForm(forms.Form):
+    query = forms.CharField(
+        required=False,
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control search-input',
+            'placeholder': 'Search posts...',
+            'aria-label': 'Search'
+        }),
+        label=''
+    )
+    
+    search_in = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('all', 'All'),
+            ('title', 'Title'),
+            ('content', 'Content'),
+            ('tags', 'Tags'),
+            ('author', 'Author')
+        ],
+        widget=forms.RadioSelect(attrs={'class': 'search-options'}),
+        initial='all',
+        label='Search in:'
+    )

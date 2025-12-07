@@ -7,8 +7,144 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse
+from django.db.models import Q
+from django.db import models
+from taggit.models import Tag
 from .models import Post, Comment, UserProfile
-from .forms import UserRegisterForm, UserUpdateForm, PostForm, CommentForm, CommentUpdateForm
+from .forms import UserRegisterForm, UserUpdateForm, PostForm, CommentForm, CommentUpdateForm, SearchForm
+from django.contrib.auth.models import User
+
+# Custom Login View
+class CustomLoginView(LoginView):
+    template_name = 'blog/login.html'
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'Welcome back, {form.get_user().username}!')
+        return super().form_valid(form)
+
+# Search View
+def search_posts(request):
+    form = SearchForm(request.GET or None)
+    results = []
+    query = ''
+    search_in = 'all'
+    
+    if form.is_valid():
+        query = form.cleaned_data.get('query', '').strip()
+        search_in = form.cleaned_data.get('search_in', 'all')
+        
+        if query:
+            # Start with all published posts
+            posts = Post.objects.filter(is_published=True)
+            
+            # Build search queries based on search_in
+            if search_in == 'all' or search_in == 'title':
+                title_q = Q(title__icontains=query)
+            else:
+                title_q = Q()
+            
+            if search_in == 'all' or search_in == 'content':
+                content_q = Q(content__icontains=query)
+            else:
+                content_q = Q()
+            
+            if search_in == 'all' or search_in == 'tags':
+                tags_q = Q(tags__name__icontains=query)
+            else:
+                tags_q = Q()
+            
+            if search_in == 'all' or search_in == 'author':
+                author_q = Q(author__username__icontains=query)
+            else:
+                author_q = Q()
+            
+            # Combine queries
+            if search_in == 'all':
+                q_object = title_q | content_q | tags_q | author_q
+            elif search_in == 'title':
+                q_object = title_q
+            elif search_in == 'content':
+                q_object = content_q
+            elif search_in == 'tags':
+                q_object = tags_q
+            elif search_in == 'author':
+                q_object = author_q
+            else:
+                q_object = Q()
+            
+            results = posts.filter(q_object).distinct().order_by('-published_date')
+        else:
+            results = Post.objects.filter(is_published=True).order_by('-published_date')[:10]
+    
+    context = {
+        'form': form,
+        'results': results,
+        'query': query,
+        'search_in': search_in,
+        'result_count': len(results),
+    }
+    return render(request, 'blog/search_results.html', context)
+
+# Tag View - Show posts by tag
+class TagPostsListView(ListView):
+    model = Post
+    template_name = 'blog/tag_posts.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+    
+    def get_queryset(self):
+        tag_slug = self.kwargs.get('tag_slug')
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        
+        if self.request.user.is_authenticated:
+            return Post.objects.filter(
+                Q(tags=tag) & 
+                (Q(is_published=True) | Q(author=self.request.user))
+            ).distinct().order_by('-published_date')
+        
+        return Post.objects.filter(tags=tag, is_published=True).order_by('-published_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag_slug = self.kwargs.get('tag_slug')
+        context['tag'] = get_object_or_404(Tag, slug=tag_slug)
+        return context
+
+# Tag Cloud View
+def tag_cloud(request):
+    # Get all tags with count
+    tags = Tag.objects.all()
+    tag_data = []
+    
+    for tag in tags:
+        count = Post.objects.filter(tags=tag, is_published=True).count()
+        if count > 0:
+            # Calculate font size based on count (logarithmic scale)
+            min_size, max_size = 0.8, 2.0
+            min_count = 1
+            max_count = max(tags.annotate(post_count=models.Count('post')).values_list('post_count', flat=True))
+            
+            if max_count > min_count:
+                scale = (max_size - min_size) / (max_count - min_count)
+                size = min_size + (count - min_count) * scale
+            else:
+                size = (min_size + max_size) / 2
+            
+            tag_data.append({
+                'tag': tag,
+                'count': count,
+                'size': f'{size:.1f}rem',
+                'color': f'hsl({hash(tag.name) % 360}, 70%, 50%)'
+            })
+    
+    # Sort by count (descending)
+    tag_data.sort(key=lambda x: x['count'], reverse=True)
+    
+    context = {
+        'tag_cloud': tag_data,
+        'total_tags': len(tag_data),
+    }
+    return render(request, 'blog/tag_cloud.html', context)
 
 # Post Views
 class PostListView(ListView):
@@ -24,6 +160,18 @@ class PostListView(ListView):
                 models.Q(author=self.request.user)
             ).order_by('-published_date')
         return Post.objects.filter(is_published=True).order_by('-published_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add popular tags to context
+        popular_tags = Tag.objects.annotate(
+            num_posts=models.Count('post')
+        ).filter(num_posts__gt=0).order_by('-num_posts')[:10]
+        context['popular_tags'] = popular_tags
+        
+        # Add search form to context
+        context['search_form'] = SearchForm()
+        return context
 
 class PostDetailView(DetailView):
     model = Post
@@ -39,6 +187,9 @@ class PostDetailView(DetailView):
             author=self.object.author,
             is_published=True
         ).exclude(id=self.object.id)[:3]
+        
+        # Add search form to context
+        context['search_form'] = SearchForm()
         return context
 
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -88,14 +239,19 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
     template_name = 'blog/comment_form.html'
     
     def form_valid(self, form):
-        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        post = get_object_or_404(Post, pk=self.kwargs['pk'])
         form.instance.post = post
         form.instance.author = self.request.user
         messages.success(self.request, 'Your comment has been added successfully!')
         return super().form_valid(form)
     
     def get_success_url(self):
-        return reverse('post_detail', kwargs={'pk': self.kwargs['post_id']})
+        return reverse('post_detail', kwargs={'pk': self.kwargs['pk']})
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['post'] = get_object_or_404(Post, pk=self.kwargs['pk'])
+        return context
 
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Comment
@@ -160,13 +316,6 @@ def register(request):
         form = UserRegisterForm()
     return render(request, 'blog/register.html', {'form': form})
 
-class CustomLoginView(LoginView):
-    template_name = 'blog/login.html'
-    
-    def form_valid(self, form):
-        messages.success(self.request, f'Welcome back, {form.get_user().username}!')
-        return super().form_valid(form)
-
 @login_required
 def profile(request):
     if request.method == 'POST':
@@ -185,6 +334,7 @@ def profile(request):
         'form': form, 
         'user_posts': user_posts,
         'user_comments': user_comments,
+        'search_form': SearchForm(),  # Add search form
     }
     return render(request, 'blog/profile.html', context)
 
@@ -197,6 +347,7 @@ def user_profile(request, username):
             'profile_user': user, 
             'user_posts': user_posts,
             'user_comments': user_comments,
+            'search_form': SearchForm(),  # Add search form
         }
         return render(request, 'blog/user_profile.html', context)
     except User.DoesNotExist:

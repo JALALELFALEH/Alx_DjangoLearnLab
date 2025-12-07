@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.urls import reverse
 from django.utils import timezone
+from taggit.managers import TaggableManager
 
 class Post(models.Model):
     title = models.CharField(max_length=200)
@@ -12,9 +13,14 @@ class Post(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts')
     is_published = models.BooleanField(default=True)
+    tags = TaggableManager(blank=True)  # Add taggit manager
     
     class Meta:
         ordering = ['-published_date']
+        indexes = [
+            models.Index(fields=['-published_date']),
+            models.Index(fields=['is_published']),
+        ]
     
     def __str__(self):
         return self.title
@@ -27,6 +33,10 @@ class Post(models.Model):
     
     def comment_count(self):
         return self.comments.filter(is_active=True).count()
+    
+    def get_tag_list(self):
+        """Return list of tag names"""
+        return [tag.name for tag in self.tags.all()]
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
@@ -34,7 +44,7 @@ class Comment(models.Model):
     content = models.TextField(max_length=1000)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_active = models.BooleanField(default=True)  # To soft delete comments
+    is_active = models.BooleanField(default=True)
     
     class Meta:
         ordering = ['-created_at']
@@ -56,7 +66,7 @@ class UserProfile(models.Model):
     def __str__(self):
         return f'{self.user.username} Profile'
 
-# Signals remain the same
+# Signals
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

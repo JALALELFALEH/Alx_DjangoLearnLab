@@ -1,0 +1,56 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Tag Cloud - Django Blog{% endblock %}
+
+{% block content %}
+<div class="tag-cloud-container">
+    <div class="tag-cloud-header">
+        <h2>Tag Cloud</h2>
+        <p class="tag-cloud-summary">{{ total_tags }} tag{{ total_tags|pluralize }} in use</p>
+    </div>
+    
+    <div class="tag-cloud">
+        {% if tag_cloud %}
+            <div class="cloud-content">
+                {% for item in tag_cloud %}
+                    <a href="{% url 'posts_by_tag' item.tag.slug %}" 
+                        class="cloud-tag" 
+                        style="font-size: {{ item.size }}; color: {{ item.color }}"
+                        title="{{ item.count }} post{{ item.count|pluralize }}">
+                        {{ item.tag.name }}
+                        <span class="tag-count">({{ item.count }})</span>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-tags">
+                <p>No tags have been added to posts yet.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="tag-stats">
+        <h3>Most Popular Tags</h3>
+        <div class="popular-tags-list">
+            {% for item in tag_cloud|slice:":10" %}
+                <div class="popular-tag-item">
+                    <a href="{% url 'posts_by_tag' item.tag.slug %}" class="tag-link">
+                        {{ item.tag.name }}
+                    </a>
+                    <span class="tag-post-count">{{ item.count }} post{{ item.count|pluralize }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="tag-instructions">
+        <h3>About Tags</h3>
+        <ul>
+            <li>Tags help organize and categorize blog posts</li>
+            <li>Click on any tag to see all posts with that tag</li>
+            <li>When creating or editing a post, add tags separated by commas</li>
+            <li>Use specific, descriptive tags for better organization</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
