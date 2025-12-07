@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from taggit.forms import TagWidget
+# Remove the incorrect import
+# from taggit.forms import TagWidget  # This was causing the error
 from .models import Post, Comment
 
 class UserRegisterForm(UserCreationForm):
