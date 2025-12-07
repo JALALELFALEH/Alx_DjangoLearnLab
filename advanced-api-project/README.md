@@ -134,3 +134,10 @@ curl "http://localhost:8000/api/books/?ordering=-publication_year"
 # Combine everything
 curl "http://localhost:8000/api/books/?publication_year__gt=2020&search=python&ordering=-title"
 
+## Task 3: Unit Testing
+
+### Running Tests
+To run the unit tests:
+```bash
+python manage.py test api
+
