@@ -5,14 +5,14 @@ from .models import Book, Author
 from .serializers import BookSerializer, AuthorSerializer
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework import filters
 from .filters import BookFilter
 class BookListView(generics.ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    filter_backends = [rest_framework.DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [rest_framework.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BookFilter
     search_fields = ['title', 'author__name']
     ordering_fields = ['title', 'publication_year', 'created_at']
