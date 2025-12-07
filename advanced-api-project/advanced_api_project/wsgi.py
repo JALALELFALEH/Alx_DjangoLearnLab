@@ -1,5 +1,5 @@
 """
-WSGI config for advanced_api_projec project.
+WSGI config for advanced_api_project project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

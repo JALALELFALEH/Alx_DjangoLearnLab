@@ -111,3 +111,26 @@ This implementation specifically addresses all Task 1 requirements:
 - ✓ Proper permission implementation
 - ✓ Comprehensive testing
 - ✓ Detailed documentation
+
+## Task 2: Testing Guide
+
+### Quick Test Commands
+
+```bash
+# 1. Start server (Terminal 1)
+python manage.py runserver
+
+# 2. Test features (Terminal 2)
+
+# Filter by title
+curl "http://localhost:8000/api/books/?title=python"
+
+# Search across fields
+curl "http://localhost:8000/api/books/?search=python"
+
+# Order by newest
+curl "http://localhost:8000/api/books/?ordering=-publication_year"
+
+# Combine everything
+curl "http://localhost:8000/api/books/?publication_year__gt=2020&search=python&ordering=-title"
+
