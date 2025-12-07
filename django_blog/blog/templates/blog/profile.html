@@ -6,7 +6,7 @@
 <div class="profile-container">
     <div class="profile-header">
         <h2>My Profile</h2>
-        <p>Manage your account settings and view your posts</p>
+        <p>Manage your account settings and view your activity</p>
     </div>
     
     {% if messages %}
@@ -33,6 +33,10 @@
                 <div class="stat-item">
                     <span class="stat-number">{{ user_posts.count }}</span>
                     <span class="stat-label">Posts</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ user_comments.count }}</span>
+                    <span class="stat-label">Comments</span>
                 </div>
             </div>
         </div>
@@ -62,22 +66,53 @@
                 </form>
             </div>
             
-            <div class="user-posts-section">
-                <h3>My Posts ({{ user_posts.count }})</h3>
+            <div class="user-activity-section">
+                <div class="user-posts-section">
+                    <h3>My Posts ({{ user_posts.count }})</h3>
+                    
+                    {% if user_posts %}
+                        <div class="posts-list">
+                            {% for post in user_posts %}
+                                <div class="post-item">
+                                    <h4><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h4>
+                                    <p class="post-meta">
+                                        Published: {{ post.published_date|date:"F d, Y" }} | 
+                                        Comments: {{ post.comment_count }}
+                                    </p>
+                                    <p>{{ post.content|truncatewords:30 }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>You haven't written any posts yet. <a href="{% url 'post_create' %}">Create your first post!</a></p>
+                    {% endif %}
+                </div>
                 
-                {% if user_posts %}
-                    <div class="posts-list">
-                        {% for post in user_posts %}
-                            <div class="post-item">
-                                <h4><a href="#">{{ post.title }}</a></h4>
-                                <p class="post-meta">Published: {{ post.published_date|date:"F d, Y" }}</p>
-                                <p>{{ post.content|truncatewords:30 }}</p>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p>You haven't written any posts yet. <a href="#">Create your first post!</a></p>
-                {% endif %}
+                <div class="user-comments-section">
+                    <h3>My Comments ({{ user_comments.count }})</h3>
+                    
+                    {% if user_comments %}
+                        <div class="comments-list">
+                            {% for comment in user_comments %}
+                                <div class="comment-item">
+                                    <div class="comment-content">
+                                        <p>{{ comment.content|truncatewords:30 }}</p>
+                                    </div>
+                                    <div class="comment-meta">
+                                        <span>On: <a href="{% url 'post_detail' comment.post.pk %}">{{ comment.post.title }}</a></span>
+                                        <span>{{ comment.created_at|timesince }} ago</span>
+                                    </div>
+                                    <div class="comment-actions">
+                                        <a href="{% url 'comment_update' comment.pk %}" class="btn btn-sm btn-edit">Edit</a>
+                                        <a href="{% url 'comment_delete' comment.pk %}" class="btn btn-sm btn-delete">Delete</a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>You haven't written any comments yet.</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import Post
+from .models import Post, Comment
 
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -56,9 +56,41 @@ class PostForm(forms.ModelForm):
                 'class': 'form-check-input'
             }),
         }
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Write your comment here...',
+                'rows': 4,
+                'maxlength': 1000
+            }),
+        }
+        labels = {
+            'content': ''
+        }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['title'].label = 'Post Title'
-        self.fields['content'].label = 'Content'
-        self.fields['is_published'].label = 'Publish this post'
+        self.fields['content'].widget.attrs.update({'maxlength': '1000'})
+    
+    def clean_content(self):
+        content = self.cleaned_data.get('content')
+        if len(content.strip()) < 5:
+            raise ValidationError("Comment must be at least 5 characters long.")
+        return content
+
+class CommentUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'maxlength': 1000
+            }),
+        }
