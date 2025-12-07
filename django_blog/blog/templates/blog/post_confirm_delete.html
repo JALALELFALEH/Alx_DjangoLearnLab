@@ -1,0 +1,34 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Delete Post - Django Blog{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <h2>Delete Post</h2>
+        
+        <div class="delete-message">
+            <p>Are you sure you want to delete the following post?</p>
+            
+            <div class="post-preview">
+                <h3>{{ post.title }}</h3>
+                <p class="post-meta">
+                    By {{ post.author.username }} | 
+                    {{ post.published_date|date:"F d, Y" }}
+                </p>
+                <p>{{ post.snippet }}</p>
+            </div>
+            
+            <p class="warning">This action cannot be undone!</p>
+        </div>
+        
+        <form method="POST" class="delete-form">
+            {% csrf_token %}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-delete">Yes, Delete This Post</button>
+                <a href="{% url 'post_detail' post.pk %}" class="btn btn-secondary">No, Go Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

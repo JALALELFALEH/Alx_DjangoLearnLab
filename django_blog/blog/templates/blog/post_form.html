@@ -1,0 +1,58 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}
+    {% if object %}Edit Post{% else %}Create New Post{% endif %} - Django Blog
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <h2>{% if object %}Edit Post{% else %}Write a New Post{% endif %}</h2>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="POST" class="post-form">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="form-group">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    
+                    {% if field.errors %}
+                        <div class="error-message">
+                            {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    {% if object %}Update Post{% else %}Publish Post{% endif %}
+                </button>
+                <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+        
+        {% if object %}
+        <div class="form-info">
+            <p><strong>Created:</strong> {{ object.published_date|date:"F d, Y" }}</p>
+            <p><strong>Last Updated:</strong> {{ object.updated_date|date:"F d, Y" }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

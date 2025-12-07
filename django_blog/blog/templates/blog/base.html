@@ -1,13 +1,12 @@
-<!-- In the navigation section of base.html -->
 <nav>
     <div class="container">
         <h1><a href="/">Django Blog</a></h1>
         <ul>
-            <li><a href="/">Home</a></li>
+            <li><a href="{% url 'home' %}">Home</a></li>
             {% if user.is_authenticated %}
                 <li><span class="user-welcome">Welcome, {{ user.username }}</span></li>
+                <li><a href="{% url 'post_create' %}">New Post</a></li>
                 <li><a href="{% url 'profile' %}">Profile</a></li>
-                <li><a href="#">New Post</a></li>
                 <li>
                     <form method="post" action="{% url 'logout' %}" style="display: inline;">
                         {% csrf_token %}
