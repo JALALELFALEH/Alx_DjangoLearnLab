@@ -1,0 +1,85 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}My Profile - Django Blog{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h2>My Profile</h2>
+        <p>Manage your account settings and view your posts</p>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="profile-content">
+        <div class="profile-sidebar">
+            <div class="user-info">
+                <div class="avatar">
+                    <span>{{ user.username|first|upper }}</span>
+                </div>
+                <h3>{{ user.username }}</h3>
+                <p class="user-email">{{ user.email }}</p>
+                <p class="member-since">Member since: {{ user.date_joined|date:"F Y" }}</p>
+            </div>
+            
+            <div class="profile-stats">
+                <h4>Your Stats</h4>
+                <div class="stat-item">
+                    <span class="stat-number">{{ user_posts.count }}</span>
+                    <span class="stat-label">Posts</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="profile-main">
+            <div class="profile-form-section">
+                <h3>Edit Profile</h3>
+                <form method="POST" class="profile-form">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            
+                            {% if field.errors %}
+                                <div class="error-message">
+                                    {% for error in field.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+            </div>
+            
+            <div class="user-posts-section">
+                <h3>My Posts ({{ user_posts.count }})</h3>
+                
+                {% if user_posts %}
+                    <div class="posts-list">
+                        {% for post in user_posts %}
+                            <div class="post-item">
+                                <h4><a href="#">{{ post.title }}</a></h4>
+                                <p class="post-meta">Published: {{ post.published_date|date:"F d, Y" }}</p>
+                                <p>{{ post.content|truncatewords:30 }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>You haven't written any posts yet. <a href="#">Create your first post!</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

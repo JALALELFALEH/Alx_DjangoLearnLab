@@ -1,114 +1,23 @@
-<!-- templates/base.html OR blog/templates/blog/base.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Django Blog - Home{% endblock %}</title>
-    
-    <!-- Django static tag MUST be loaded -->
-    {% load static %}
-    
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    
-    <!-- Block for additional CSS per page -->
-    {% block extra_css %}{% endblock %}
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
-    
-    <!-- Meta tags for SEO -->
-    <meta name="description" content="A Django-powered blog platform">
-    <meta name="keywords" content="Django, Python, Blog, Web Development">
-</head>
-<body>
-    <!-- Header Section -->
-    <header class="main-header">
-        <div class="container">
-            <nav class="navbar">
-                <div class="logo">
-                    <a href="{% url 'home' %}">DjangoBlog</a>
-                </div>
-                <ul class="nav-menu">
-                    <li class="nav-item"><a href="{% url 'home' %}" class="nav-link">Home</a></li>
-                    <li class="nav-item"><a href="{% url 'post_list' %}" class="nav-link">All Posts</a></li>
-                    <li class="nav-item"><a href="{% url 'about' %}" class="nav-link">About</a></li>
-                    {% if user.is_authenticated %}
-                        <li class="nav-item"><a href="{% url 'profile' %}" class="nav-link">Profile</a></li>
-                        <li class="nav-item"><a href="{% url 'logout' %}" class="nav-link">Logout</a></li>
-                    {% else %}
-                        <li class="nav-item"><a href="{% url 'login' %}" class="nav-link">Login</a></li>
-                        <li class="nav-item"><a href="{% url 'register' %}" class="nav-link">Register</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <main class="content-wrapper">
-        <div class="container">
-            <!-- Messages/Notifications -->
-            {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-                {% endfor %}
-            </div>
+<!-- In the navigation section of base.html -->
+<nav>
+    <div class="container">
+        <h1><a href="/">Django Blog</a></h1>
+        <ul>
+            <li><a href="/">Home</a></li>
+            {% if user.is_authenticated %}
+                <li><span class="user-welcome">Welcome, {{ user.username }}</span></li>
+                <li><a href="{% url 'profile' %}">Profile</a></li>
+                <li><a href="#">New Post</a></li>
+                <li>
+                    <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
+                </li>
+            {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'register' %}">Register</a></li>
             {% endif %}
-            
-            <!-- Page-specific content block -->
-            {% block content %}
-            <div class="default-content">
-                <h1>Welcome to Django Blog</h1>
-                <p>This is the default content. Override this block in child templates.</p>
-            </div>
-            {% endblock %}
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="main-footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="{% url 'home' %}">Home</a></li>
-                        <li><a href="{% url 'post_list' %}">Blog</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3>Connect</h3>
-                    <div class="social-links">
-                        <a href="#" class="social-icon">Twitter</a>
-                        <a href="#" class="social-icon">GitHub</a>
-                        <a href="#" class="social-icon">LinkedIn</a>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Django Blog. All rights reserved. | Built with Django</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- JavaScript Files -->
-    <script src="{% static 'js/scripts.js' %}"></script>
-    
-    <!-- Block for additional JavaScript per page -->
-    {% block extra_js %}{% endblock %}
-    
-    <!-- Debug information (only in development) -->
-    {% if debug %}
-    <div class="debug-info">
-        <small>Static URL: {{ STATIC_URL }}</small>
+        </ul>
     </div>
-    {% endif %}
-</body>
-</html>
+</nav>
