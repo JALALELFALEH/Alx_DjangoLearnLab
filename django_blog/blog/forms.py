@@ -2,9 +2,17 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-# Remove the incorrect import
-# from taggit.forms import TagWidget  # This was causing the error
 from .models import Post, Comment
+
+# Custom TagWidget for comma-separated tags
+class TagWidget(forms.TextInput):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Enter tags separated by commas',
+            'data-role': 'tagsinput'
+        })
 
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -41,13 +49,11 @@ class UserUpdateForm(UserChangeForm):
         return email
 
 class PostForm(forms.ModelForm):
+    # Use our custom TagWidget here
     tags = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter tags separated by commas (e.g., django, python, web)'
-        }),
-        help_text='Separate tags with commas'
+        widget=TagWidget(),
+        help_text='Separate tags with commas (e.g., django, python, web)'
     )
     
     class Meta:
