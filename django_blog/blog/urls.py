@@ -11,7 +11,7 @@ from .views import (
     CommentCreateView,
     CommentUpdateView,
     CommentDeleteView,
-    TagPostsListView
+    PostByTagListView  # Changed from TagPostsListView
 )
 
 urlpatterns = [
@@ -33,7 +33,7 @@ urlpatterns = [
     # Search and Tag URLs
     path('search/', views.search_posts, name='search'),
     path('tags/', views.tag_cloud, name='tag_cloud'),
-    path('tags/<slug:tag_slug>/', TagPostsListView.as_view(), name='posts_by_tag'),
+    path('tags/<slug:tag_slug>/', PostByTagListView.as_view(), name='posts_by_tag'),  # Updated
     
     # Authentication URLs
     path('register/', views.register, name='register'),

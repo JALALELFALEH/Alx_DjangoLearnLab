@@ -4,9 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.contrib.auth.views import LoginView, LogoutView
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy, reverse
-from django.http import JsonResponse
 from django.db.models import Q
 from django.db import models
 from taggit.models import Tag
@@ -86,7 +85,7 @@ def search_posts(request):
     return render(request, 'blog/search_results.html', context)
 
 # Tag View - Show posts by tag
-class TagPostsListView(ListView):
+class PostByTagListView(ListView):
     model = Post
     template_name = 'blog/tag_posts.html'
     context_object_name = 'posts'
@@ -334,7 +333,7 @@ def profile(request):
         'form': form, 
         'user_posts': user_posts,
         'user_comments': user_comments,
-        'search_form': SearchForm(),  # Add search form
+        'search_form': SearchForm(),
     }
     return render(request, 'blog/profile.html', context)
 
@@ -347,7 +346,7 @@ def user_profile(request, username):
             'profile_user': user, 
             'user_posts': user_posts,
             'user_comments': user_comments,
-            'search_form': SearchForm(),  # Add search form
+            'search_form': SearchForm(),
         }
         return render(request, 'blog/user_profile.html', context)
     except User.DoesNotExist:
