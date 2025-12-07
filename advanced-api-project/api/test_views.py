@@ -29,14 +29,12 @@ class BookAPITests(APITestCase):
         """Test retrieving all books."""
         response = self.client.get('/api/books/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Check response data
         self.assertIsInstance(response.data, list)
     
     def test_get_single_book(self):
         """Test retrieving a single book."""
         response = self.client.get(f'/api/books/{self.book.id}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Check response data has correct title
         self.assertEqual(response.data['title'], 'Test Book')
     
     def test_create_book_unauthenticated(self):
@@ -52,7 +50,8 @@ class BookAPITests(APITestCase):
     
     def test_create_book_authenticated(self):
         """Test creating a book with authentication."""
-        self.client.force_authenticate(user=self.user)
+        # Login using self.client.login
+        self.client.login(username='testuser', password='testpass')
         data = {
             'title': 'My Book',
             'publication_year': 2024,
@@ -60,26 +59,33 @@ class BookAPITests(APITestCase):
         }
         response = self.client.post('/api/books/create/', data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Check response data has the created book
         self.assertEqual(response.data['title'], 'My Book')
     
     def test_filter_books_by_title(self):
         """Test filtering books by title."""
         response = self.client.get('/api/books/?title=test')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Check response data is a list
         self.assertIsInstance(response.data, list)
     
     def test_search_books(self):
         """Test searching books."""
         response = self.client.get('/api/books/?search=test')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Check response data
         self.assertIsInstance(response.data, list)
     
     def test_order_books(self):
         """Test ordering books."""
         response = self.client.get('/api/books/?ordering=-publication_year')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Check response data
         self.assertIsInstance(response.data, list)
+    
+    def test_login_functionality(self):
+        """Test login functionality."""
+        # Test login works
+        login_success = self.client.login(username='testuser', password='testpass')
+        self.assertTrue(login_success)
+        
+        # Test logout works
+        self.client.logout()
+        login_failed = self.client.login(username='testuser', password='wrongpass')
+        self.assertFalse(login_failed)
