@@ -2,18 +2,14 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
-from django.contrib.auth import authenticate
-from .models import CustomUser
+from django.contrib.auth import authenticate, get_user_model
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer
 
+User = get_user_model()
+
 class RegisterView(generics.CreateAPIView):
-    queryset = CustomUser.objects.all()
+    queryset = User.objects.all()
     serializer_class = RegisterSerializer
-    
-    def perform_create(self, serializer):
-        user = serializer.save()
-        token = Token.objects.create(user=user)
-        return token
 
 class LoginView(APIView):
     def post(self, request):
