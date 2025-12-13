@@ -67,3 +67,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return request.user.is_following(obj)
         return False
+    
+CustomUser = get_user_model()  # This will get CustomUser model
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    
+    class Meta:
+        model = CustomUser  # Use CustomUser here
+        fields = ['username', 'email', 'password', 'bio', 'profile_picture']
+    
+    def create(self, validated_data):
+        user = get_user_model().objects.create_user(**validated_data)
+        Token.objects.create(user=user)
+        return user
