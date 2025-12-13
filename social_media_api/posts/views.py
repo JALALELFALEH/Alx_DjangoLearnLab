@@ -1,10 +1,10 @@
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions, filters, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Post, Comment
-from .serializers import PostSerializer, CommentSerializer
+from .models import Post, Comment, Like
+from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 
 class IsOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -26,6 +26,44 @@ class PostViewSet(viewsets.ModelViewSet):  # This must be PostViewSet
         comments = post.comments.all()
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def like(self, request, pk=None):
+        post = self.get_object()
+        
+        # Check if user already liked this post
+        if Like.objects.filter(user=request.user, post=post).exists():
+            return Response({'message': 'You already liked this post'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create like
+        like = Like.objects.create(user=request.user, post=post)
+        
+        # Create notification (we'll implement this later)
+        # self.create_notification(post.author, request.user, 'like', post=post)
+        
+        return Response({'message': 'Post liked successfully'}, status=status.HTTP_201_CREATED)
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def unlike(self, request, pk=None):
+        post = self.get_object()
+        
+        try:
+            like = Like.objects.get(user=request.user, post=post)
+            like.delete()
+            return Response({'message': 'Post unliked successfully'})
+        except Like.DoesNotExist:
+            return Response({'message': 'You have not liked this post'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['get'])
+    def likes(self, request, pk=None):
+        post = self.get_object()
+        likes = post.likes.all()
+        serializer = LikeSerializer(likes, many=True)
+        return Response(serializer.data)
+    
+    def create_notification(self, recipient, actor, verb, post=None, comment=None):
+        # This will be implemented in notifications
+        pass
 
 class CommentViewSet(viewsets.ModelViewSet):  # This must be CommentViewSet
     queryset = Comment.objects.all().order_by('-created_at')

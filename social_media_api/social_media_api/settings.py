@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_filters',
     'accounts',
     'posts',
+    'notifications',
 ]
 
 REST_FRAMEWORK = {
