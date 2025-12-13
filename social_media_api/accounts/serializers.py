@@ -3,13 +3,13 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 
-User = get_user_model()
+CustomUser = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     profile_picture_url = serializers.SerializerMethodField()
     
     class Meta:
-        model = User
+        model = CustomUser
         fields = ['id', 'username', 'email', 'bio', 'profile_picture', 'profile_picture_url']
         extra_kwargs = {
             'profile_picture': {'write_only': True}
@@ -24,7 +24,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     
     class Meta:
-        model = User
+        model = CustomUser
         fields = ['username', 'email', 'password', 'bio', 'profile_picture']
     
     def create(self, validated_data):
@@ -37,14 +37,13 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
 class FollowSerializer(serializers.Serializer):
-    user_id = serializers.IntegerField()
+    user_id = serializers.IntegerField(required=False)
     
-    def validate_user_id(self, value):
-        try:
-            user = User.objects.get(id=value)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("User does not exist")
-        return value
+    def validate(self, data):
+        # user_id can come from URL or request data
+        if 'user_id' not in data and not self.context.get('user_id_from_url'):
+            raise serializers.ValidationError("User ID is required")
+        return data
 
 class UserProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
@@ -52,7 +51,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     is_following = serializers.SerializerMethodField()
     
     class Meta:
-        model = User
+        model = CustomUser
         fields = ['id', 'username', 'email', 'bio', 'profile_picture', 
                 'followers_count', 'following_count', 'is_following']
     
@@ -67,17 +66,3 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return request.user.is_following(obj)
         return False
-    
-CustomUser = get_user_model()  # This will get CustomUser model
-
-class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-    
-    class Meta:
-        model = CustomUser  # Use CustomUser here
-        fields = ['username', 'email', 'password', 'bio', 'profile_picture']
-    
-    def create(self, validated_data):
-        user = get_user_model().objects.create_user(**validated_data)
-        Token.objects.create(user=user)
-        return user
