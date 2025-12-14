@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-ry3m%a&2#nmzy$!0dqs-v$u*cpvw&#55@1@s1^i$0^9ws@c@qo'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['your-domain.com', 'www.your-domain.com', 'server-ip-address']
 
 
 # Application definition
@@ -149,3 +149,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Use custom user model
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# Security settings
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+# SECURE_SSL_REDIRECT = True  # If you have SSL certificate
