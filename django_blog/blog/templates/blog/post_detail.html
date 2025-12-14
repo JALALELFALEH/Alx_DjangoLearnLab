@@ -1,0 +1,11 @@
+<!-- Add this after post-content div -->
+{% if post.tags.all %}
+<div class="post-tags">
+    <h4>Tags:</h4>
+    <div class="tags-list">
+        {% for tag in post.tags.all %}
+            <a href="{% url 'posts_by_tag' tag.slug %}" class="tag">{{ tag.name }}</a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
