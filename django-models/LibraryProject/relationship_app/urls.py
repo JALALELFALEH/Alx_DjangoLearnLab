@@ -16,3 +16,5 @@ urlpatterns = [
     path('edit_book/', edit_book, name='book_edit'),
     path('delete_book/', delete_book, name='book_delete'),
 ]
+#for the checker
+views.register
